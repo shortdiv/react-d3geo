@@ -15,9 +15,8 @@ class WorldMap extends Component {
       .translate([800/2, 450/2])
   }
   componentDidMount () {
-    fetch('https://unpkg.com/world-atlas@1.1.4/world/110m.json')
+    fetch('./world-110m.json')
       .then(response => {
-        console.log('in here')
         if(response.status !== 200) {console.log(`error at ${response.status}`); return}
         response.json().then(worldData => {
           console.log(worldData)
@@ -33,14 +32,14 @@ class WorldMap extends Component {
         <g className="countries">
           { this.state.worldData.map((d,i) => (
              <path
-                key={ `path-${ i }` }
-                d={ geoPath().projection(this.projection())(d) }
-                className="country"
-                fill={ `rgba(38,50,56,${ 1 / this.state.worldData.length * i})` }
-                stroke="#FFFFFF"
-                strokeWidth={ 0.5 }
-                onClick={ () => this.handleCountryClick(i) }
-              />
+               key={ `path-${ i }` }
+               d={ geoPath().projection(this.projection())(d) }
+               className="country"
+               fill={ `rgba(38,50,56,${ 1 / this.state.worldData.length * i})` }
+               stroke="#FFFFFF"
+               strokeWidth={ 0.5 }
+               onClick={ () => this.handleCountryClick(i) }
+             />
           ))
           }
         </g>

@@ -16,6 +16,8 @@ app.use(require('webpack-dev-middleware')(compiler, {
 
 app.use(require('webpack-hot-middleware')(compiler))
 
+app.use(express.static('dist'))
+
 app.get('/', (req, res) => {
   res.send(
     `<!DOCTYPE html>
