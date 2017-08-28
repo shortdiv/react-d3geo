@@ -22,26 +22,37 @@ class WorldMap extends Component {
       .projection(this.projection())
   }
   componentDidMount () {
-    fetch('./chicago_neighborhoods.json')
+    var neighborhoods = fetch('./chicago_neighborhoods.json')
       .then(response => {
         if(response.status !== 200) {console.log(`error at ${response.status}`); return}
-        response.json().then(neighborhoods => {
-          this.projection()
-            .scale(1)
-            .translate([0, 0]);
+          return response.json()
+      })
 
-          var b = this.path().bounds(neighborhoods),
-          s = .95 / Math.max((b[1][0] - b[0][0]) / this.state.width, (b[1][1] - b[0][1]) / this.state.height),
-          t = [(this.state.width - s * (b[1][0] + b[0][0])) / 2, (this.state.height - s * (b[1][1] + b[0][1])) / 2];
+    var states = fetch('./us_states.json')
+      .then(response => {
+        return response.json()
+      })
 
-          this.setState({
-            chicagoNeighborhoods: feature(neighborhoods, neighborhoods.objects.chicago_neighborhoods).features
-          })
+    Promise.all([neighborhoods, states])
+      .then(values => {
+        const neighborhoods = values[0];
+        const states = values[1]
 
-          this.projection()
-            .scale(s)
-            .translate(t);
+        this.projection()
+          .scale(1)
+          .translate([0, 0]);
+
+        var b = this.path().bounds(neighborhoods),
+        s = .95 / Math.max((b[1][0] - b[0][0]) / this.state.width, (b[1][1] - b[0][1]) / this.state.height),
+        t = [(this.state.width - s * (b[1][0] + b[0][0])) / 2, (this.state.height - s * (b[1][1] + b[0][1])) / 2];
+
+        this.setState({
+          chicagoNeighborhoods: feature(neighborhoods, neighborhoods.objects.chicago_neighborhoods).features
         })
+
+        this.projection()
+          .scale(s)
+          .translate(t);
       })
   }
   render () {
