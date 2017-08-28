@@ -3,42 +3,63 @@ import { geoMercator, geoPath } from 'd3-geo'
 import { feature } from 'topojson-client'
 
 class WorldMap extends Component {
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
     this.state = {
-      worldData: []
+      chicagoNeighborhoods: [],
+      width: 960,
+      height: 500
     }
   }
-  projection() {
+  projection () {
     return geoMercator()
-      .scale(100)
-      .translate([800/2, 450/2])
+      .center([-87.623177, 41.881832])
+      .scale(50000)
+      .translate([this.state.width/2, this.state.height/2])
+  }
+  path () {
+    return geoPath()
+      .projection(this.projection())
   }
   componentDidMount () {
-    fetch('./world-110m.json')
+    fetch('./chicago_neighborhoods.json')
       .then(response => {
         if(response.status !== 200) {console.log(`error at ${response.status}`); return}
-        response.json().then(worldData => {
-          console.log(worldData)
+        response.json().then(neighborhoods => {
+          this.projection()
+            .scale(1)
+            .translate([0, 0]);
+
+          var b = this.path().bounds(neighborhoods),
+          s = .95 / Math.max((b[1][0] - b[0][0]) / this.state.width, (b[1][1] - b[0][1]) / this.state.height),
+          t = [(this.state.width - s * (b[1][0] + b[0][0])) / 2, (this.state.height - s * (b[1][1] + b[0][1])) / 2];
+
           this.setState({
-            worldData: feature(worldData, worldData.objects.countries).features
+            chicagoNeighborhoods: feature(neighborhoods, neighborhoods.objects.chicago_neighborhoods).features
           })
+
+          this.projection()
+            .scale(s)
+            .translate(t);
         })
       })
   }
   render () {
+    const y = -70
+    const styles = {
+      transform: `translateY(${y}px)`
+    }
     return (
-      <svg width={ 800 } height= {450} viewBox="0 0 800 450">
-        <g className="countries">
-          { this.state.worldData.map((d,i) => (
+      <svg width={ 960 } height= { 500 } viewBox="0 0 960 500">
+        <g className="chicagoNeighborhoods" style={styles}>
+          { this.state.chicagoNeighborhoods.map((d,i) => (
              <path
                key={ `path-${ i }` }
                d={ geoPath().projection(this.projection())(d) }
-               className="country"
-               fill={ `rgba(38,50,56,${ 1 / this.state.worldData.length * i})` }
+               className="neighborhood"
+               fill={ `#ccc` }
                stroke="#FFFFFF"
                strokeWidth={ 0.5 }
-               onClick={ () => this.handleCountryClick(i) }
              />
           ))
           }
