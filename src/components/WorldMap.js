@@ -53,7 +53,9 @@ class WorldMap extends Component {
 
         this.setState({
           chicagoNeighborhoods: feature(neighborhoods, neighborhoods.objects.chicago_neighborhoods).features,
-          usStates: feature(states, states.objects.us_states).features
+          usStates: feature(states, states.objects.us_states).features,
+          width: window.innerWidth,
+          height: window.innerHeight
         })
 
         this.projection()
@@ -66,8 +68,9 @@ class WorldMap extends Component {
     const styles = {
       transform: `translateY(${y}px)`
     }
+    const view = `0 0 ${this.state.width} ${this.state.height}`
     return (
-      <svg width={ 960 } height= { 500 } viewBox="0 0 960 500">
+      <svg width={ this.state.width } height= { this.state.height } viewBox={ view }>
         <g className="states">
           { this.state.usStates.map((d,i) => (
             <path
@@ -81,7 +84,7 @@ class WorldMap extends Component {
           ))
           }
         </g>
-        <g className="chicagoNeighborhoods" style={styles}>
+        <g className="chicagoNeighborhoods" style={ styles }>
           { this.state.chicagoNeighborhoods.map((d,i) => (
              <path
                key={ `path-${ i }` }
