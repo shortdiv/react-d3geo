@@ -8,8 +8,8 @@ class WorldMap extends Component {
     this.state = {
       chicagoNeighborhoods: [],
       usStates: [],
-      width: 960,
-      height: 500
+      width: props.width,
+      height: props.height
     }
   }
   projection () {
@@ -53,9 +53,7 @@ class WorldMap extends Component {
 
         this.setState({
           chicagoNeighborhoods: feature(neighborhoods, neighborhoods.objects.chicago_neighborhoods).features,
-          usStates: feature(states, states.objects.us_states).features,
-          width: window.innerWidth,
-          height: window.innerHeight
+          usStates: feature(states, states.objects.us_states).features
         })
 
         this.projection()
