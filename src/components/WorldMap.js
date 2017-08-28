@@ -7,6 +7,7 @@ class WorldMap extends Component {
     super(props)
     this.state = {
       chicagoNeighborhoods: [],
+      usStates: [],
       width: 960,
       height: 500
     }
@@ -28,7 +29,7 @@ class WorldMap extends Component {
           return response.json()
       })
 
-    var states = fetch('./us_states.json')
+    var states = fetch('./us_states2.json')
       .then(response => {
         return response.json()
       })
@@ -42,12 +43,17 @@ class WorldMap extends Component {
           .scale(1)
           .translate([0, 0]);
 
-        var b = this.path().bounds(neighborhoods),
+        var state = feature(states, states.objects.us_states).features.filter((state) => {
+          return state.properties.name.toLowerCase() === 'illinois'
+        })[0]
+
+        var b = this.path().bounds(state),
         s = .95 / Math.max((b[1][0] - b[0][0]) / this.state.width, (b[1][1] - b[0][1]) / this.state.height),
         t = [(this.state.width - s * (b[1][0] + b[0][0])) / 2, (this.state.height - s * (b[1][1] + b[0][1])) / 2];
 
         this.setState({
-          chicagoNeighborhoods: feature(neighborhoods, neighborhoods.objects.chicago_neighborhoods).features
+          chicagoNeighborhoods: feature(neighborhoods, neighborhoods.objects.chicago_neighborhoods).features,
+          usStates: feature(states, states.objects.us_states).features
         })
 
         this.projection()
@@ -56,12 +62,25 @@ class WorldMap extends Component {
       })
   }
   render () {
-    const y = -70
+    const y = 0
     const styles = {
       transform: `translateY(${y}px)`
     }
     return (
       <svg width={ 960 } height= { 500 } viewBox="0 0 960 500">
+        <g className="states">
+          { this.state.usStates.map((d,i) => (
+            <path
+              key={`path-${i}`}
+              d={geoPath().projection(this.projection())(d)}
+              className={d.properties.name.toLowerCase()}
+              fill={ `#ccc` }
+              stroke="#FFFFFF"
+              strokeWidth={ 0.5 }
+            />
+          ))
+          }
+        </g>
         <g className="chicagoNeighborhoods" style={styles}>
           { this.state.chicagoNeighborhoods.map((d,i) => (
              <path
