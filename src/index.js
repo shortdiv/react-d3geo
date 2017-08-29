@@ -1,10 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import WorldMap from './components/WorldMap'
+import ZoomableMap from './components/ZoomableMap'
 
 document.addEventListener("DOMContentLoaded", () => {
-  ReactDOM.render(<WorldMap width="1000" height="1000"/>, document.getElementById('app'))
+  ReactDOM.render(<ZoomableMap width={1000} height={1000}/>, document.getElementById('app'))
 })
 
 

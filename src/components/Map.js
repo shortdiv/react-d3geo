@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { geoMercator, geoPath } from 'd3-geo'
 import { feature } from 'topojson-client'
 
-class WorldMap extends Component {
+class Map extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -15,12 +15,28 @@ class WorldMap extends Component {
   projection () {
     return geoMercator()
       .center([-87.623177, 41.881832])
-      .scale(50000)
+      .scale(5000)
       .translate([this.state.width/2, this.state.height/2])
   }
   path () {
     return geoPath()
-      .projection(this.projection())
+      .projection(null)
+  }
+  get transform () {
+    const zoomTransform = this.props.zoomTransform
+
+    let transform = ""
+    if(zoomTransform) {
+      transform = `translate(${zoomTransform.x}, ${zoomTransform.y}) scale(${zoomTransform.k})`
+    }
+    return transform
+  }
+  get scale () {
+    const zoomTransform = this.props.zoomTransform
+
+    let scale = ""
+    if(zoomTransform) { scale = zoomTransform.k }
+    return scale
   }
   componentDidMount () {
     var neighborhoods = fetch('./chicago_neighborhoods.json')
@@ -38,9 +54,10 @@ class WorldMap extends Component {
       .then(values => {
         const neighborhoods = values[0];
         const states = values[1]
+        const tau = 2* Math.PI
 
         this.projection()
-          .scale(1)
+          .scale(1/tau)
           .translate([0, 0]);
 
         var state = feature(states, states.objects.us_states).features.filter((state) => {
@@ -53,7 +70,9 @@ class WorldMap extends Component {
 
         this.setState({
           chicagoNeighborhoods: feature(neighborhoods, neighborhoods.objects.chicago_neighborhoods).features,
-          usStates: feature(states, states.objects.us_states).features
+          usStates: feature(states, states.objects.us_states).features,
+          width: Math.max(this.state.width, window.innerWidth),
+          height: Math.max(this.state.height, window.innerHeight),
         })
 
         this.projection()
@@ -68,8 +87,7 @@ class WorldMap extends Component {
     }
     const view = `0 0 ${this.state.width} ${this.state.height}`
     return (
-      <svg width={ this.state.width } height= { this.state.height } viewBox={ view }>
-        <g className="states">
+        <g className="states" transform={this.transform}>
           { this.state.usStates.map((d,i) => (
             <path
               key={`path-${i}`}
@@ -77,27 +95,13 @@ class WorldMap extends Component {
               className={d.properties.name.toLowerCase()}
               fill={ `#ccc` }
               stroke="#FFFFFF"
-              strokeWidth={ 0.5 }
+              strokeWidth={ 0.5 /this.scale + "px" }
             />
           ))
           }
         </g>
-        <g className="chicagoNeighborhoods" style={ styles }>
-          { this.state.chicagoNeighborhoods.map((d,i) => (
-             <path
-               key={ `path-${ i }` }
-               d={ geoPath().projection(this.projection())(d) }
-               className="neighborhood"
-               fill={ `#ccc` }
-               stroke="#FFFFFF"
-               strokeWidth={ 0.5 }
-             />
-          ))
-          }
-        </g>
-      </svg>
     )
   }
 }
 
-export default WorldMap
+export default Map
